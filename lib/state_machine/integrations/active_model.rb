@@ -397,6 +397,11 @@ module StateMachine
         object.errors.clear if supports_validations?
       end
 
+      # Runs state events around the object's validation process
+      def around_validation(object)
+        object.class.state_machines.transitions(object, action, :after => false).perform { yield }
+      end
+
       protected
         # Whether observers are supported in the integration.  Only true if
         # ActiveModel::Observer is available.
@@ -508,13 +513,6 @@ module StateMachine
         def define_validation_hook
           owner_class.set_callback(:validation, :around, self, :prepend => true)
         end
-
-        # Runs state events around the object's validation process
-        def around_validation(object)
-          object.class.state_machines.transitions(object, action, :after => false).perform { yield }
-        end
-
-        public :around_validation
 
         # Creates a new callback in the callback chain, always inserting it
         # before the default Observer callbacks that were created after
